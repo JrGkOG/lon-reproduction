@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Island Migration Dashboard</title>
+<meta name="description" content="Compare migration, search trajectory networks, and local optima networks across three discrete optimisation problems.">
+<style>
+:root{color-scheme:light;--ink:#172738;--muted:#536579;--line:#d9e2e9;--canvas:#f0f4f7;--card:#fff;--teal:#006c63;--warm:#91451b;--green:#24643a;--shadow:0 8px 20px #172b4010}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--canvas);color:var(--ink);font:14px/1.48 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}h1,h2,h3,p{margin:0}button,select,input{font:inherit;color:inherit}button,a,select{cursor:pointer}a{color:#065f64;text-underline-offset:3px}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #1a9893;outline-offset:2px}
+.container{max-width:1490px;margin:auto;padding:0 32px}
+main.container{padding-top:16px;padding-bottom:44px}
+.event-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:0 14px 12px;font-size:12px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:0}.head{padding:16px 19px 12px;display:flex;align-items:center;justify-content:space-between;gap:14px}.head h1,.head h2{font:700 25px/1.12 Georgia,serif}.head p,.helper{font-size:12px;color:var(--muted);margin-top:4px}.controls{display:grid;grid-template-columns:1.1fr .65fr 1.15fr 1.1fr;gap:8px;padding:0 16px 11px}.controls label,.chooser label{display:grid;gap:4px;color:var(--muted);font-weight:600;font-size:11px}.controls .search{grid-column:1/-1}.controls select,.controls input,.chooser select{width:100%;border:1px solid #cbd7e0;background:#fff;border-radius:6px;padding:7px 8px;font-weight:450;font-size:12px;color:var(--ink)}
+.workspace{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(420px,.95fr);gap:16px;align-items:start}.scroll{overflow:auto}.list{max-height:715px}table{width:100%;border-collapse:collapse;line-height:1.32;font-size:12px;white-space:nowrap}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid #e8edf2}th{color:var(--muted);background:#f5f8fb;font-weight:670}thead th{position:sticky;top:0;z-index:1}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}tbody tr[data-id]{cursor:pointer}tbody tr[data-id]:hover,tbody tr.selected{background:#e8f4f2}td:first-child{font-weight:600}.row-btn{padding:0;border:0;background:none;color:#085b60;text-align:left;font-weight:680;white-space:nowrap}.pill{display:inline-flex;border-radius:4px;padding:3px 5px;font-size:10.5px;font-weight:650;background:#ecf1f5;color:#35475a;line-height:1.23;white-space:nowrap}.pill.good{background:#dff1e6;color:#235b3a}.pill.proj{background:#ddf0ed;color:#00594f}.pill.caution{background:#fbefdd;color:#784218}.pager{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 14px;color:var(--muted);font-size:12px}.pager nav{display:flex;gap:7px}.btn{border:1px solid #bfd0d8;background:#fff;border-radius:6px;padding:6px 10px;text-decoration:none;display:inline-block;color:#1d4658;font-weight:620;font-size:12px}.btn:hover{background:#edf6f5}.btn:disabled{color:#8291a2;background:#f3f5f7;cursor:default}
+.detail-body{padding:0 17px 17px}.detail-info{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:11px}.detail-label{color:var(--muted);font-size:12px}.caption{font-size:12px;color:var(--muted);margin:8px 0}.mini-actions{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.micro{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:9px 0}.micro>div{border:1px solid #dce6ea;border-radius:7px;padding:7px;overflow-wrap:anywhere}.micro span{display:block;font-size:10px;color:var(--muted)}.micro strong{font-size:12px;font-variant-numeric:tabular-nums}.negative{color:#91451b}.positive{color:#24643a}.section-head{margin:13px 0 4px;font-weight:700}.mini-map{width:100%;height:268px;background:#f8fafb;border:1px solid #dce5eb;border-radius:8px;display:block}.map-legend{display:flex;flex-wrap:wrap;gap:11px;margin:7px 0;color:var(--muted);font-size:11px}.map-legend i{width:9px;height:9px;display:inline-block;border-radius:50%;margin-right:4px}.path{border-top:1px solid #e0e7ec;padding:8px 0;color:var(--muted);font-size:12px}.path summary{cursor:pointer;font-weight:650;color:var(--ink)}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere;font-size:11px}.path p{margin:5px 0}.parts{display:grid;gap:5px;margin-top:6px}.part{padding:6px 8px;border:1px solid #e1e8ed;border-radius:7px;font-size:11px}.part strong{display:block;color:var(--ink)}.part span{color:var(--muted)}.section{margin-top:20px;scroll-margin-top:12px}.chooser{display:flex;gap:9px;align-items:end;padding:0 17px 12px}.chooser label{min-width:105px}.image-wrap{padding:0 17px 17px;overflow-x:auto;overscroll-behavior-inline:contain}
+.image-wrap:focus-visible{outline:3px solid #1a9893;outline-offset:-3px}
+.image-wrap img{display:block;width:auto;max-width:none;height:auto;margin-inline:auto}.foot{font-size:12px;color:var(--muted);margin:16px 0 0}
+@media(min-width:1550px){#figures{width:1500px;margin-inline-start:calc((100% - 1500px)/2)}}
+@media(max-width:1060px){.workspace{grid-template-columns:minmax(0,1fr)}.list{max-height:500px}.detail{scroll-margin-top:10px}}@media(max-width:640px){.container{padding:0 14px}.controls{grid-template-columns:repeat(2,minmax(0,1fr))}.head{padding-inline:13px}.detail-body{padding-inline:12px}.micro strong{font-size:10px}.mini-map{height:236px}.chooser{flex-wrap:wrap}}
+.point-data{margin:6px 0 0;display:grid;gap:4px}.point-data>div{display:grid;grid-template-columns:minmax(95px,auto) minmax(0,1fr);gap:5px 10px;align-items:baseline}.point-data dt{color:var(--muted)}.point-data dd{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;margin:0;min-width:0}.point-data .point-score{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums}.point-data .sequence-id{background:#e8f2f4;color:#205260;padding:2px 4px;border-radius:3px}.sequence-link{border:0;padding:0;background:none;color:#065f64;text-decoration:underline;text-underline-offset:2px}.sequence-dialog{width:min(560px,calc(100% - 28px));max-width:none;max-height:calc(100% - 28px);padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}.sequence-dialog::backdrop{background:#17273880}.sequence-head,.sequence-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.sequence-head h2{font:700 20px/1.2 Georgia,serif}.sequence-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px;padding:10px;margin:9px 0 12px;max-height:45vh;overflow:auto;background:#f4f7f9;border:1px solid var(--line);border-radius:6px}.sequence-grid span{white-space:nowrap;letter-spacing:.04em}.sequence-actions{justify-content:flex-start;font-size:12px}.sequence-dialog textarea{width:100%;margin-top:10px;overflow-wrap:anywhere;font:12px ui-monospace,monospace}
+@media(max-width:420px){.point-data>div{grid-template-columns:1fr;gap:2px}}
+</style>
+</head>
+<body>
+<noscript>Enable JavaScript to view the migration dashboard.</noscript>
+<main class="container">
+  <p id="load-error" role="alert" hidden></p>
+  <div class="workspace">
+    <section class="panel" id="events" aria-labelledby="events-title">
+      <div class="head"><div><h1 id="events-title">Migrant copies</h1><p id="case-intro">Choose a row to see the receiver’s before, arrival and after evidence.</p></div><div><a class="btn" id="export-copies" download>Export CSV</a><p id="export-status" role="status"></p></div></div>
+      <div class="controls">
+        <label>Problem<select id="problem"></select></label><label>Algorithm<select id="algorithm"></select></label><label>Seed<select id="seed"></select></label>
+        <label>Fitness result<select id="raw"></select></label><label>LON result<select id="reference"></select></label>
+        <label class="search">Find a genome, basin or transfer<input id="search" type="search" placeholder="Enter a genome, optimum ID or transfer ID"></label>
+      </div>
+      <div class="scroll list" tabindex="0" aria-label="Migration results">
+      <table><thead><tr><th>Algorithm</th><th>Seed</th><th>Route</th><th>Fitness</th><th>LON evidence</th></tr></thead><tbody id="events-body"></tbody></table>
+      </div>
+      <div class="pager"><span id="page-count" aria-live="polite"></span><nav aria-label="Results pages"><button class="btn" id="prev" type="button">Previous</button><button class="btn" id="next" type="button">Next</button></nav></div>
+      <div class="event-links">
+        <button type="button" id="show-example" class="btn">See a lower-scoring migrant</button>
+        <a id="reference-figure" target="_blank" rel="noopener"></a>
+      </div>
+    </section>
+    <section class="panel detail" id="detail" aria-labelledby="detail-title">
+      <div class="head"><div><h2 id="detail-title">Individual evidence</h2><p id="detail-subtitle"></p></div><a class="btn" id="open-pair" href="#figures">View 2D pair</a></div>
+      <div class="detail-body" id="details"></div>
+    </section>
+  </div>
+  <section id="figures" class="panel section">
+    <div class="head"><div><h2>2D STNs and LONs</h2></div><a class="btn" id="figure-file" target="_blank" rel="noopener">Open full image</a></div>
+    <div class="chooser"><label>Seed<select id="figure-seed"></select></label><span id="figure-context"></span></div>
+    <div class="image-wrap" role="region" aria-label="Full-size 2D figure" tabindex="0"><img id="figure-image" loading="lazy" width="1444" height="1376" alt="Paired STN and LON figure"></div>
+  </section>
+  <section id="comparison" class="panel section">
+    <div class="head"><div><h2>Migration on versus off</h2><p id="comparison-scope"></p></div></div>
+    <div class="scroll" tabindex="0" aria-label="Comparison across problems">
+      <table><thead><tr><th>Problem</th><th class="num">Final result wins / ties / losses</th><th class="num">Global hits off → on</th></tr></thead><tbody id="comparison-body"></tbody></table>
+    </div>
+  </section>
+</main>
+<dialog class="sequence-dialog" id="sequence-dialog" aria-labelledby="sequence-title">
+  <form method="dialog" class="sequence-head">
+    <h2 id="sequence-title"></h2>
+    <button class="btn" type="submit" autofocus>Close</button>
+  </form>
+  <p class="caption" id="sequence-length"></p>
+  <code class="sequence-grid" id="sequence-grid"></code>
+  <div class="sequence-actions">
+    <button class="btn" type="button" id="copy-sequence">Copy full sequence</button>
+    <span id="sequence-status" role="status"></span>
+  </div>
+  <textarea id="sequence-manual" aria-label="Full sequence for manual copying" rows="3" readonly hidden></textarea>
+</dialog>
+<script type="application/json" id="study-index">{"methods":{"ga":"Binary GA","mutation-ea":"Mutation-only EA","binary-pso":"Binary PSO","binary-de":"Binary DE","umda":"UMDA","pbil":"PBIL","clonal-selection":"Clonal selection"},"problems":{"seven-binary-study":{"label":"NK(18,6)","outcomes":{"ga":{"wins":3,"ties":3,"losses":4,"global_off":1,"global_on":1},"mutation-ea":{"wins":3,"ties":4,"losses":3,"global_off":0,"global_on":0},"binary-pso":{"wins":3,"ties":3,"losses":4,"global_off":0,"global_on":0},"binary-de":{"wins":5,"ties":1,"losses":4,"global_off":2,"global_on":3},"umda":{"wins":3,"ties":4,"losses":3,"global_off":1,"global_on":1},"pbil":{"wins":3,"ties":2,"losses":5,"global_off":1,"global_on":1},"clonal-selection":{"wins":2,"ties":3,"losses":5,"global_off":1,"global_on":2}}},"burma14":{"label":"TSP \u00b7 burma14","outcomes":{"ga":{"wins":9,"ties":0,"losses":1,"global_off":0,"global_on":3},"mutation-ea":{"wins":7,"ties":1,"losses":2,"global_off":0,"global_on":0},"binary-pso":{"wins":4,"ties":6,"losses":0,"global_off":0,"global_on":0},"binary-de":{"wins":6,"ties":1,"losses":3,"global_off":0,"global_on":0},"umda":{"wins":1,"ties":0,"losses":9,"global_off":2,"global_on":0},"pbil":{"wins":2,"ties":1,"losses":7,"global_off":0,"global_on":0},"clonal-selection":{"wins":7,"ties":0,"losses":3,"global_off":0,"global_on":0}}},"maxcut700":{"label":"Weighted Max-Cut \u00b7 700 vertices","outcomes":{"ga":{"wins":8,"ties":1,"losses":1,"global_off":0,"global_on":0},"mutation-ea":{"wins":8,"ties":0,"losses":2,"global_off":0,"global_on":0},"binary-pso":{"wins":4,"ties":0,"losses":6,"global_off":0,"global_on":0},"binary-de":{"wins":7,"ties":0,"losses":3,"global_off":0,"global_on":0},"umda":{"wins":9,"ties":0,"losses":1,"global_off":0,"global_on":0},"pbil":{"wins":2,"ties":0,"losses":8,"global_off":0,"global_on":0},"clonal-selection":{"wins":8,"ties":0,"losses":2,"global_off":0,"global_on":0}}}}}</script>
+<script>
+"use strict";
+const studyIndex = JSON.parse(document.getElementById("study-index").textContent);
+const $ = id => document.getElementById(id);
+const methods = Object.entries(studyIndex.methods);
+window.studyData = Object.create(null);
+let value, settings, images, runLon, eventsById, graphNodes, graphAdj, basinLabels, figureMethod;
+let requestNumber = 0;
+const landscapeOutcome = event => runLon ? event.run_lon_outcome : event.reference_outcome;
+
+const fmt = n => n == null ? "—" : Number(n).toLocaleString("en-US");
+const scoreFmt = n => fmt(n==null?n:n*settings.display_sign);
+const safe = text => String(text == null ? "" : text).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");
+const asOptions = (items, initial) => (initial ? [["",initial],...items] : items).map(([v,l])=>`<option value="${safe(v)}">${safe(l)}</option>`).join("");
+const distinct = field => [...new Set(value.events.map(event=>event[field]))].sort();
+const pageSize=24;
+let page=0, selected=null, matching=[];
+function pill(text, landscape){
+  const neutral = text === "No observed improvement" || text === "No mapped advance observed" || text === "No run-LON advance observed";
+  const colour = neutral ? "" : text === "Reference coverage limited" ? "caution" : landscape ? "proj" : "good";
+  const label = settings.display_sign<0 ? text.replace("Higher basin","Shorter-tour basin") : text;
+  return `<span class="pill ${colour}">${safe(label)}</span>`;
+}
+
+function shortest(a,b) {
+  if(!graphAdj.has(a) || !graphAdj.has(b) || a===b) return [];
+  const found = new Map([[a,null]]), todo=[a];
+  for(let i=0;i<todo.length;i++){
+    for(const next of graphAdj.get(todo[i])) if(!found.has(next)){found.set(next,todo[i]);todo.push(next);}
+    if(found.has(b))break;
+  }
+  if(!found.has(b))return [];
+  const path=[];for(let node=b;node!=null;node=found.get(node))path.push(node);
+  return path.reverse();
+}
+function drawMap(canvas,event,focus=event.reference_after){
+  if(!canvas) return;
+  const ratio=window.devicePixelRatio||1;
+  const w=canvas.clientWidth,h=canvas.clientHeight;
+  if(!w||!h)return;
+  canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio);
+  const ctx=canvas.getContext("2d");ctx.scale(ratio,ratio);
+  const scale=Math.min(w,h)*.43;
+  const xy=id=>{const n=graphNodes.get(id);return [w/2+n.x*scale,h/2-n.y*scale];};
+  function drawLines(list,colour,width){ctx.beginPath();for(const [a,b] of list){ctx.moveTo(...xy(a));ctx.lineTo(...xy(b));}
+    ctx.strokeStyle=colour;ctx.lineWidth=width;ctx.stroke();}
+  drawLines(value.reference.edges,"#73818d52",.55);
+  const after=focus;
+  const route=after ? shortest(event.reference_arrival.b,after.b) : [];
+  const routeText=$("map-route");
+  if(routeText)routeText.textContent=!after?"":!event.reference_arrival.mapped||!after.mapped?
+    "An endpoint is outside the sampled LON.":event.reference_arrival.b===after.b?
+    "The arrival and selected follow-up share the same basin.":route.length>1?"A directed LON route is visible.":"No directed route was sampled.";
+  if(route.length>1)drawLines(route.slice(1).map((n,i)=>[route[i],n]),"#0c7d76",1.7);
+  for(const node of value.reference.nodes){
+    ctx.beginPath();ctx.arc(...xy(node.id),node.global?3.6:node.sink?2.5:1.65,0,2*Math.PI);
+    ctx.fillStyle=node.global?"#d33627":node.sink?"#496aa7":node.global_funnel?"#db9eac":"#91bde0";ctx.fill();
+  }
+  const points=[[event.reference_before,"#203b61",9],[event.reference_arrival,"#b5531f",7],[after,"#00796e",5]];
+  for(const [point,colour,radius] of points) if(point && point.mapped){
+    ctx.beginPath();ctx.arc(...xy(point.b),radius,0,2*Math.PI);ctx.strokeStyle=colour;ctx.lineWidth=1.7;ctx.stroke();
+  }
+}
+function lineage(label,items){
+  return items && items.length ? `<details class="path"><summary>${safe(label)} · ${items.length-1} recorded steps</summary><p><code>${items.map(safe).join(" → ")}</code></p></details>` : "";
+}
+function sequenceValue(sequence, label, id){
+  if(!/^[01]{33,}$/.test(sequence))return `<code>${safe(sequence)}</code>`;
+  const preview=sequence.slice(0,10)+"…"+sequence.slice(-10);
+  return `${id?`<span class="sequence-id">${safe(id)}</span>`:""}<code>${preview}</code>
+    <span>${fmt(sequence.length)} bits</span>
+    <button class="sequence-link" type="button" data-sequence="${sequence}" data-sequence-label="${safe(id || label)}" aria-label="View full sequence for ${safe(id || label)}">View full</button>`;
+}
+function point(text, point){
+  if(!point)return `<div class="part"><strong>${safe(text)}</strong><span>No linked local evaluation recorded</span></div>`;
+  const scoreLabel=settings.score_label.toLowerCase();
+  return `<div class="part"><strong>${safe(text)} · eval ${fmt(point.eval)}</strong>
+    <dl class="point-data">
+      <div><dt>Evaluated genome</dt><dd>${sequenceValue(point.g,"Evaluated genome")}<span class="point-score">${scoreFmt(point.f)} ${scoreLabel}</span></dd></div>
+      ${point.solution?`<div><dt>Evaluated tour</dt><dd><code>${safe(point.solution)}</code></dd></div>`:""}
+      <div><dt>Projected LON optimum</dt><dd>${sequenceValue(point.b,"Projected LON optimum",basinLabels.get(point.b))}
+        <span class="point-score">${scoreFmt(point.bf)} ${scoreLabel}</span>${(runLon || point.mapped)?"":"<span>Outside sampled map</span>"}</dd></div>
+    </dl></div>`;
+}
+const sequenceDialog=$("sequence-dialog");
+let fullSequence="";
+$("details").addEventListener("click",event=>{
+  const button=event.target.closest("[data-sequence]");
+  if(!button)return;
+  fullSequence=button.dataset.sequence;
+  $("sequence-title").textContent=button.dataset.sequenceLabel;
+  $("sequence-length").textContent=`${fmt(fullSequence.length)} bits · groups of 10 for readability`;
+  $("sequence-grid").replaceChildren(...fullSequence.match(/.{1,10}/g).map(bits=>{
+    const group=document.createElement("span");
+    group.textContent=bits;
+    return group;
+  }));
+  $("sequence-status").textContent="";
+  $("sequence-manual").hidden=true;
+  sequenceDialog.showModal();
+});
+$("copy-sequence").addEventListener("click",async()=>{
+  const sequence=fullSequence;
+  try{
+    await navigator.clipboard.writeText(sequence);
+    if(sequenceDialog.open && fullSequence===sequence)$("sequence-status").textContent=`Copied ${fmt(sequence.length)} bits.`;
+  }catch{
+    if(!sequenceDialog.open || fullSequence!==sequence)return;
+    const field=$("sequence-manual");
+    field.value=sequence;
+    field.hidden=false;
+    field.focus();
+    field.select();
+    $("sequence-status").textContent="Full sequence selected. Press ⌘C or Ctrl+C to copy.";
+  }
+});
+function selectEvent(event){
+  selected=event||null;
+  const subtitle=$("detail-subtitle"), host=$("details");
+  $("open-pair").hidden=!event;
+  if(!event){subtitle.textContent="";host.innerHTML='<p class="caption">No migrant copies match these filters.</p>';return;}
+  subtitle.textContent=`${value.methods[event.algorithm]} · seed ${event.seed} · transfer ${event.transfer} · copy ${event.copy}`;
+  const delta=event.migrant-event.before;
+  const displayedDelta=delta*settings.display_sign;
+  const later=event.later_eval==null?"No later local record linked to this arrival":`Linked local record at evaluation ${fmt(event.later_eval)}: ${scoreFmt(event.later_before)} → ${scoreFmt(event.later_fitness)}.`;
+  const beforeCoverage=`${event.mapped_receiver_members_before}/${event.receiver_population_before} live receiver genomes project to the reference map.`;
+  const first=event.reference_first_child;
+  const higher=runLon?event.run_lon_first_higher:event.reference_first_higher;
+  const exact=runLon?event.run_lon_first_exact:event.reference_first_exact;
+  const landscapePath=runLon?event.run_lon_first_path:event.reference_path;
+  const variants=[["First linked evaluation",first],["Higher basin",higher],["New exact optimum",exact]]
+    .filter(([,point],i,all)=>point && all.findIndex(([,other])=>other?.id===point.id)===i);
+  const otherCopy=value.events.find(e=>e.algorithm===event.algorithm && e.seed===event.seed &&
+    e.transfer===event.transfer && e.copy!==event.copy);
+  host.innerHTML=
+    `<div class="detail-info">${pill(event.outcome,false)} ${pill(landscapeOutcome(event),true)}<span class="detail-label">Island ${event.source} → Island ${event.receiver} · generation ${event.generation}</span></div>
+      <h3 class="section-head">Receiver at arrival · ${settings.score_label.toLowerCase()}</h3>
+      <div class="micro"><div><span>Best before</span><strong>${scoreFmt(event.before)}</strong></div><div><span>Migrant ${settings.score_label.toLowerCase()}</span><strong>${scoreFmt(event.migrant)}</strong></div><div><span>Migrant minus best</span><strong class="${delta<0?"negative":delta>0?"positive":""}">${displayedDelta>0?"+":""}${fmt(displayedDelta)}</strong></div></div>
+      <p class="caption">${safe(later)} ${fmt(event.linked_local_evaluations)} linked local evaluations on this receiver.</p>
+      <h3 class="section-head">Before, arrival and after on the ${runLon?"same-run":"fixed"} LON</h3>
+      ${runLon?`<p class="caption">Independent reference evidence: ${safe(event.reference_outcome)}. ${event.run_lon_higher_delivered?"This copy delivered a higher basin than was represented in the live receiving population.":""}</p>`:`<div class="mini-actions">${variants.map(([name,p])=>
+        `<button type="button" class="btn" data-point="${safe(p.id)}">${safe(name)}</button>`).join("")}</div>
+      <canvas class="mini-map" id="map" aria-label="Independent reference LON with marked optima"></canvas>
+      <div class="map-legend"><span><i style="background:#203b61"></i>Best live basin before</span><span><i style="background:#b5531f"></i>Arrival basin</span><span><i style="background:#00796e"></i>Follow-up basin</span></div>
+      <p class="caption">${safe(beforeCoverage)} <span id="map-route"></span></p>`}
+      <div class="parts">${point("Before · best live projected basin",event.reference_before)}${point("Migrant arrival",event.reference_arrival)}${point("First linked local evaluation",first)}
+      ${higher && higher.id!==first?.id?point(settings.display_sign<0?"Follow-up · shorter-tour basin":"Follow-up · higher mapped basin",higher):""}
+      ${exact && exact.id!==first?.id?point("Follow-up · new exact optimum",exact):""}</div>
+      ${lineage("Recorded path to the landscape follow-up",landscapePath)}
+      ${event.path.join()!==landscapePath.join()?lineage("Recorded path to the later fitness record",event.path):""}
+      ${otherCopy?`<div class="mini-actions"><button type="button" class="btn" id="sibling">View the other copy in this transfer</button></div>`:""}
+      <details class="path"><summary>Genome and STN identifiers</summary><p>STN nodes ${event.source_node} → ${event.receiver_node} · closest live receiver genome differed at ${event.nearest_bits} bits.</p><p><code>${safe(event.source_individual)} → ${safe(event.arrival_individual)}</code></p><p>Replaced individual <code>${safe(event.replaced_individual)}</code> · ${settings.score_label.toLowerCase()} ${scoreFmt(event.replaced_fitness)}</p></details>`;
+  if(!runLon)drawMap($("map"),event);
+  for(const button of host.querySelectorAll("[data-point]")){
+    button.addEventListener("click",()=>{
+      drawMap($("map"),event,variants.find(([,point])=>point.id===button.dataset.point)?.[1]);
+      for(const choice of host.querySelectorAll("[data-point]"))choice.setAttribute("aria-pressed",String(choice===button));
+    });
+  }
+  if(otherCopy)$("sibling").addEventListener("click",()=>selectEvent(otherCopy));
+}
+function filtered(){
+  const algorithm=$("algorithm").value,seed=$("seed").value,raw=$("raw").value,land=$("reference").value;
+  const query=$("search").value.trim().toLowerCase();
+  return value.events.filter(e=>(!algorithm||e.algorithm===algorithm) && (!seed||e.seed===Number(seed)) &&
+    (!raw||e.outcome===raw) && (!land||landscapeOutcome(e)===land) &&
+    (!query||[e.id,e.genome,e.basin,e.reference_after?.b,e.arrival_individual,basinLabels.get(e.basin),basinLabels.get(e.reference_after?.b)].some(x=>x&&x.toLowerCase().includes(query))));
+}
+function pageRows(){
+  const start=page*pageSize, visible=matching.slice(start,start+pageSize);
+  $("events-body").innerHTML=visible.length?visible.map(e=>
+    `<tr data-id="${safe(e.id)}" class="${e.id===selected?.id?"selected":""}"><td><button class="row-btn" type="button">${safe(value.methods[e.algorithm])}</button></td><td>${e.seed}</td><td>${e.source} → ${e.receiver}</td><td>${pill(e.outcome,false)}</td><td>${pill(landscapeOutcome(e),true)}</td></tr>`).join(""):
+    '<tr><td colspan="5">No events match the current filters.</td></tr>';
+  $("page-count").textContent=matching.length?`${fmt(start+1)}–${fmt(Math.min(start+pageSize,matching.length))} of ${fmt(matching.length)}`:"0 results";
+  $("prev").disabled=!page;$("next").disabled=start+pageSize>=matching.length;
+}
+function refresh(){
+  matching=filtered();
+  page=0;
+  selectEvent(matching[0]||null);
+  pageRows();
+}
+function updateComparison(){
+  const algorithm=$("algorithm").value;
+  $("comparison-scope").textContent = algorithm
+    ? `${studyIndex.methods[algorithm]} · 10 matched seeds per problem. A win means migration-on finished better.`
+    : "All algorithms · 70 matched pairs per problem. A win means migration-on finished better.";
+  $("comparison-body").innerHTML=Object.values(studyIndex.problems).map(problem=>{
+    const rows=algorithm?[problem.outcomes[algorithm]]:Object.values(problem.outcomes);
+    const total=key=>rows.reduce((sum,row)=>sum+row[key],0);
+    return `<tr><th scope="row">${safe(problem.label)}</th><td class="num">${total("wins")} / ${total("ties")} / ${total("losses")}</td><td class="num">${total("global_off")} → ${total("global_on")}</td></tr>`;
+  }).join("");
+}
+function updateFigure(seed=Number($("figure-seed").value)) {
+  const method=$("algorithm").value || figureMethod;
+  const row=value.pairs.find(pair=>pair.algorithm===method && pair.seed===seed);
+  const url=images+row.figure;
+  $("figure-context").textContent=value.methods[row.algorithm];
+  $("figure-seed").value=String(row.seed);
+  $("figure-image").src=url;
+  $("figure-file").href=url;
+  $("figure-image").alt=`${settings.label}, ${value.methods[row.algorithm]}, seed ${row.seed}: paired STNs and LONs`;
+}
+function showStudy(data, slug){
+  value=data;
+  settings=data.study;
+  images=caseAssets(slug)+"figures/";
+  runLon=settings.show_run_lon;
+  eventsById=new Map(data.events.map(event=>[event.id,event]));
+  graphNodes=new Map(data.reference.nodes.map(node=>[node.id,node]));
+  basinLabels=new Map([...graphNodes.keys()].sort().map((id,index)=>[id,`Basin ${String(index+1).padStart(3,"0")}`]));
+  graphAdj=new Map(data.reference.nodes.map(node=>[node.id,[]]));
+  for(const [a,b] of data.reference.edges)graphAdj.get(a).push(b);
+  $("case-intro").textContent=settings.intro;
+  $("export-copies").href=caseAssets(slug)+"migration-copies.csv.gz";
+  $("export-copies").download=`${slug}-migration-copies.csv`;
+  $("reference-figure").href=images+settings.reference_image;
+  $("reference-figure").textContent=runLon?"Independent sample diagnostic · 0% coverage":"Independent reference LON";
+  $("show-example").hidden=!settings.example_id;
+  $("show-example").textContent=settings.display_sign<0?"See a longer-tour migrant":"See a lower-scoring migrant";
+  const seeds=[...new Set(value.pairs.map(row=>row.seed))].sort((a,b)=>a-b).map(seed=>[seed,seed]);
+  $("seed").innerHTML=asOptions(seeds,"All seeds");
+  $("figure-seed").innerHTML=asOptions(seeds);
+  const distinct=field=>[...new Set(value.events.map(event=>event[field]))].sort();
+  $("raw").innerHTML=asOptions(distinct("outcome").map(outcome=>[outcome,outcome]),"All fitness results");
+  $("reference").innerHTML=asOptions(distinct(runLon?"run_lon_outcome":"reference_outcome").map(outcome=>[
+    outcome,settings.display_sign<0?outcome.replace("Higher basin","Shorter-tour basin"):outcome
+  ]),"All LON results");
+  $("search").value="";
+  figureMethod=methods[0][0];
+  refresh();
+  updateFigure();
+}
+const caseAssets = slug => `assets/cases/${slug}/`;
+async function fetchGzip(url){
+  if(!("DecompressionStream" in window)){
+    throw new Error("Use a current Chrome, Edge, Firefox, or Safari to open this dashboard.");
+  }
+  const response=await fetch(url);
+  if(!response.ok || !response.body)throw new Error(`Download failed (${response.status}).`);
+  return response.body.pipeThrough(new DecompressionStream("gzip"));
+}
+$("export-copies").addEventListener("click",async event=>{
+  event.preventDefault();
+  const link=event.currentTarget;
+  if(!link.hasAttribute("href") || link.getAttribute("aria-busy")==="true")return;
+  const url=link.href;
+  const filename=link.download;
+  link.setAttribute("aria-busy","true");
+  $("export-status").textContent="Preparing CSV…";
+  try{
+    const bytes=await new Response(await fetchGzip(url)).arrayBuffer();
+    const objectURL=URL.createObjectURL(new Blob([bytes],{type:"text/csv;charset=utf-8"}));
+    const download=document.createElement("a");
+    download.href=objectURL;
+    download.download=filename;
+    document.body.append(download);
+    download.click();
+    download.remove();
+    setTimeout(()=>URL.revokeObjectURL(objectURL),30000);
+    $("export-status").textContent="";
+  }catch(error){
+    $("export-status").textContent="Could not download the CSV. Try again.";
+    console.error(error);
+  }finally{
+    link.removeAttribute("aria-busy");
+  }
+});
+
+async function changeProblem(){
+  const slug=$("problem").value;
+  const request=++requestNumber;
+  $("load-error").hidden=true;
+  $("events").setAttribute("aria-busy","true");
+  // Keep the previous problem visible until the requested dataset is ready.
+  try {
+    if(!window.studyData[slug]){
+      const stream=await fetchGzip(caseAssets(slug)+"study.json.gz");
+      window.studyData[slug]=await new Response(stream).json();
+    }
+    if(request===requestNumber)showStudy(window.studyData[slug],slug);
+  } catch(error) {
+    if(request===requestNumber){
+      $("load-error").textContent=("DecompressionStream" in window)
+        ?"Could not load this problem. Choose another problem or reload the page."
+        :"Use a current browser to view the migration dashboard.";
+      $("load-error").hidden=false;
+    }
+    console.error(error);
+  } finally {
+    if(request===requestNumber)$("events").removeAttribute("aria-busy");
+  }
+}
+
+for(const id of ["seed","raw","reference"])$(id).addEventListener("change",()=>{if(value)refresh();});
+$("search").addEventListener("input",()=>{if(value)refresh();});
+$("events-body").addEventListener("click",event=>{
+  const row=event.target.closest("[data-id]");
+  if(!row)return;
+  selectEvent(eventsById.get(row.dataset.id));
+  for(const node of $("events-body").querySelectorAll("tr"))node.classList.toggle("selected",node===row);
+  if(window.innerWidth<1061)$("detail").scrollIntoView({block:"start"});
+});
+$("prev").addEventListener("click",()=>{if(page>0){page--;pageRows();}});
+$("next").addEventListener("click",()=>{if((page+1)*pageSize<matching.length){page++;pageRows();}});
+$("figure-seed").addEventListener("change",()=>updateFigure());
+$("open-pair").addEventListener("click",()=>{
+  if(!selected)return;
+  figureMethod=selected.algorithm;
+  updateFigure(selected.seed);
+});
+window.addEventListener("resize",()=>{if(selected&&!runLon)drawMap($("map"),selected);});
+$("show-example").addEventListener("click",()=>{
+  for(const id of ["algorithm","seed","raw","reference"])$(id).value="";
+  $("search").value=settings.example_id;
+  updateComparison();
+  refresh();
+  updateFigure();
+  $("events").scrollIntoView({block:"start"});
+});
+$("problem").innerHTML=asOptions(Object.entries(studyIndex.problems).map(([key,problem])=>[key,problem.label]));
+$("algorithm").innerHTML=asOptions(methods,"All algorithms");
+const query=new URLSearchParams(location.search);
+if(Object.hasOwn(studyIndex.problems,query.get("problem")))$("problem").value=query.get("problem");
+if(Object.hasOwn(studyIndex.methods,query.get("algorithm")))$("algorithm").value=query.get("algorithm");
+$("problem").addEventListener("change",changeProblem);
+$("algorithm").addEventListener("change",()=>{
+  updateComparison();
+  if(value){refresh();updateFigure();}
+});
+updateComparison();
+changeProblem();
+</script>
+</body>
+</html>
